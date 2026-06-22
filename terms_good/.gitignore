@@ -1,0 +1,21 @@
+# Build outputs
+*.exe
+*.o
+*.obj
+
+# VS Code
+.vscode/
+
+# Temporary files
+*.log
+
+# Release folder
+release/
+build/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Runtime DLLs
+*.dll
