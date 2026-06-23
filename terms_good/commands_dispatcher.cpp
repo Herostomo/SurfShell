@@ -49,7 +49,7 @@ void dispatchCommand(const ParsedCommand& cmd)
         cp(cmd.args);
     }
     else if(cmd.command == "help"){
-        help();
+        help(cmd.args);
     }
     else if(cmd.command == "stat"){
         stat(cmd.args);

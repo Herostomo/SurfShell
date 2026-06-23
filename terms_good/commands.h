@@ -29,27 +29,17 @@ void find(const std::vector<std::string>& args);// Search for files in a directo
 
 // File Manipulation
 void grep(const std::vector<std::string>& args);// Search for patterns in files
-// void sort_cmd(const std::vector<std::string>& args);// Sort lines of text files
-// void uniq(const std::vector<std::string>& args);// Report or omit repeated lines in a file
 
 // Disk Usage
-// void df(const std::vector<std::string>& args);// Report file system disk space usage
 void diff(const std::vector<std::string>& args);// Compare files line by line
 
 // System Commands
-// void cpu(const std::vector<std::string>& args);// Display CPU usage
-// void ram(const std::vector<std::string>& args);// Display RAM usage
-// void disk(const std::vector<std::string>& args);// Display disk usage
-// void processes(const std::vector<std::string>& args);// Display running processes
-// void kill_cmd(const std::vector<std::string>& args);// Terminate a process by PID
 void wc(const std::vector<std::string>& args);
 // Shell Commands
-void help();// Display help information for commands
+void help(const std::vector<std::string>& args);// Display help information for commands
 void clear();// Clear the terminal screen
-// void history(const std::vector<std::string>& args);// Display command history
-// void exit_cmd(const std::vector<std::string>& args);// Exit the shell
-void history_command(const std::vector<std::string>& args);
-void tree(const std::vector<std::string>& args);
+void history_command(const std::vector<std::string>& args); //display history
+void tree(const std::vector<std::string>& args); // display the file structure
 
 struct SearchResult
 {

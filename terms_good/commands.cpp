@@ -8,6 +8,7 @@
 #include <vector>
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
+#include <limits>
 using json = nlohmann::json;
 size_t WriteCallback(
     void* contents,
@@ -216,7 +217,15 @@ void pwd(const std::vector<std::string>&)
 
 void mkdir(const std::vector<std::string>& args){
     try{
-        std::filesystem::create_directory(args[0]);
+        if(args.empty()){
+            std::cout<<"mkdir <path> missing";
+            return;
+        }
+        if(!std::filesystem::create_directory(args[0]))
+        {
+            std::cerr
+                << "mkdir: directory already exists\n";
+        }
 
     }
     catch(const std::exception& e){
@@ -229,6 +238,10 @@ void mkdir(const std::vector<std::string>& args){
 
 void rm(const std::vector<std::string>& args){
     try{
+        if(args.empty()){
+            std::cout<<"rm <path> missing";
+            return;
+        }
         std::filesystem::remove(args[0]);
     }
     catch(const std::exception& e){
@@ -241,7 +254,11 @@ void rm(const std::vector<std::string>& args){
 
 void touch(const std::vector<std::string>& args){
     try{
-        std::ofstream file(args[0]);
+        if(args.empty()){
+            std::cout<<"touch <path> missing";
+            return;
+        }
+        std::ofstream file(args[0], std::ios::app);
         file.close();
     }
     catch(const std::exception& e){
@@ -309,11 +326,23 @@ void echo(const std::vector<std::string>& args)
 
 void cat(const std::vector<std::string>& args){
     try{
+        if(args.empty()){
+            std::cout<<"cat <path> missing";
+            return;
+        }
+        
         std::ifstream file(args[0]);
+        if(!file)
+        {
+            std::cerr
+                << "cat: cannot open file\n";
+            return;
+        }
         std::string line;
         while(std::getline(file,line)){
             std::cout<<line<<std::endl;
         }
+        
     }
     catch(std:: exception& e){
         std::cerr
@@ -568,38 +597,162 @@ void cp(const std::vector<std::string>& args)
         std::cerr << "cp: " << e.what() << '\n';
     }
 }
-struct CommandInfo {
+struct CommandInfo
+{
     std::string name;
     std::string description;
+    std::string usage;
+    std::string details;
 };
 
-std::vector<CommandInfo> commands = {
-    {"ls", "List files and directories"},
-    {"cd", "Change current directory"},
-    {"pwd", "Print current working directory"},
-    {"touch", "Create a file"},
-    {"rm", "Remove a file"},
-    {"cat", "Display file contents"},
-    {"head", "Display first lines of a file"},
-    {"tail", "Display last lines of a file"},
-    {"echo", "Print text"},
-    {"clear", "Clear terminal screen"},
-    {"help", "Show help"},
-    {"mkdir", "create a new directory"},
-    {"diff", "compares the contents of two files"},
-    {"mv", "move file in the directory or rename the file"},
-    {"cp", "copy the content of one file to another"}
+std::vector<CommandInfo> commands =
+{
+    {"ls",
+     "List files and directories",
+     "ls [path]",
+     "Displays all files and folders in the specified directory. If no path is given, current directory is used."},
+
+    {"cd",
+     "Change current directory",
+     "cd <directory>",
+     "Changes the current working directory to the specified path."},
+
+    {"pwd",
+     "Print current working directory",
+     "pwd",
+     "Displays the full path of the current directory."},
+
+    {"touch",
+     "Create a file",
+     "touch <filename>",
+     "Creates a new empty file. If the file already exists, its timestamp is updated."},
+
+    {"rm",
+     "Remove a file",
+     "rm <filename>",
+     "Deletes the specified file."},
+
+    {"cat",
+     "Display file contents",
+     "cat <filename>",
+     "Prints the entire contents of a file."},
+
+    {"head",
+     "Display first lines of a file",
+     "head <filename> <n>",
+     "Displays the first n lines of the file."},
+
+    {"tail",
+     "Display last lines of a file",
+     "tail <filename> <n>",
+     "Displays the last n lines of the file."},
+
+    {"echo",
+     "Print text",
+     "echo <text>",
+     "Prints text to the terminal or writes text to a file depending on implementation."},
+
+    {"mkdir",
+     "Create a directory",
+     "mkdir <directory_name>",
+     "Creates a new directory."},
+
+    {"cp",
+     "Copy files",
+     "cp <source> <destination>",
+     "Copies a file from source to destination."},
+
+    {"mv",
+     "Move/Rename files",
+     "mv <source> <destination>",
+     "Moves a file or renames it."},
+
+    {"diff",
+     "Compare two files",
+     "diff <file1> <file2>",
+     "Compares two files line-by-line and displays differences."},
+
+    {"find",
+     "Search for files",
+     "find <directory> <filename>",
+     "Recursively searches for a file inside a directory."},
+
+    {"grep",
+     "Search text patterns",
+     "grep <pattern> <filename>",
+     "Searches for a pattern inside a file."},
+
+    {"wc",
+     "Count words, lines and characters",
+     "wc <filename>",
+     "Displays word count, line count and character count."},
+
+    {"tree",
+     "Display directory structure",
+     "tree [path]",
+     "Displays files and folders in a tree-like format."},
+
+    {"history",
+     "Display command history",
+     "history",
+     "Shows previously executed commands."},
+
+    {"search",
+     "Search the web",
+     "search <query>",
+     "Performs a web search and displays results."},
+
+    {"neofetch",
+     "Display system information",
+     "neofetch",
+     "Shows OS, CPU, memory and system information."},
+
+    {"clear",
+     "Clear terminal screen",
+     "clear",
+     "Clears the terminal window."},
+
+    {"help",
+     "Show help information",
+     "help [command]",
+     "Displays all commands or detailed help for a specific command."}
 };
 
-void help() {
-    std::cout << "Available Commands:\n\n";
+void help(const std::vector<std::string>& args)
+{
+    if(args.empty())
+    {
+        std::cout << "Available Commands:\n\n";
 
-    for(const auto& cmd : commands) {
-        std::cout << cmd.name
-                  << " - "
-                  << cmd.description
-                  << '\n';
+        for(const auto& cmd : commands)
+        {
+            std::cout
+                << cmd.name
+                << " - "
+                << cmd.description
+                << '\n';
+        }
+
+        std::cout << "\nType 'help <command>' for detailed information.\n";
+        return;
     }
+
+    std::string commandName = args[0];
+
+    for(const auto& cmd : commands)
+    {
+        if(cmd.name == commandName)
+        {
+            std::cout << "\nCommand : " << cmd.name << '\n';
+            std::cout << "Description : " << cmd.description << '\n';
+            std::cout << "Usage : " << cmd.usage << '\n';
+            std::cout << "Details : " << cmd.details << '\n';
+            return;
+        }
+    }
+
+    std::cout << "help: command '" << commandName
+              << "' not found\n";
 }
 
 void stat(const std::vector<std::string>& args){
@@ -620,29 +773,35 @@ void stat(const std::vector<std::string>& args){
     std::cout << "Path: " << p << '\n';
 
     if(std::filesystem::is_regular_file(status))
-        std::cout << "Type: Regular File\n"
-                  << "Size: "
-                  << std::filesystem::file_size(p)
-                  << " bytes\n";
+    {
+        std::cout << "Type: Regular File\n";
+        std::cout << "Size: "
+                << std::filesystem::file_size(p)
+                << " bytes\n";
+    }
     else if(std::filesystem::is_directory(status))
-        std::cout << "Type: Directory\n"
-                  << "Size: "
-                  << std::filesystem::file_size(p)
-                  << " bytes\n";
+    {
+        std::cout << "Type: Directory\n";
+    }
+    else if(std::filesystem::is_symlink(status))
+    {
+        std::cout << "Type: Symbolic Link\n";
+    }
     else
-        std::cout << "Type: Other\n"
-                  << "Size: "
-                  << std::filesystem::file_size(p)
-                  << " bytes\n";
+    {
+        std::cout << "Type: Other\n";
+    }
 
 }
 void find(const std::vector<std::string>& args){
     if(args.empty()){
         std::cerr<<"Command argument not specified"<<std::endl;
+        return;
     }
 
     std::string target = args[0];
-    for(const auto& entry : std::filesystem::recursive_directory_iterator(".")){
+    for(const auto& entry : std::filesystem::recursive_directory_iterator("." ,
+         std::filesystem::directory_options::skip_permission_denied)){
         if(entry.path().filename() == target){
             std::cout<<std::filesystem::absolute(entry.path())<<'\n';
         }
@@ -749,7 +908,7 @@ void printTree(const std::filesystem::path& path,
                   << entry.path().filename().string()
                   << '\n';
 
-        if(std::filesystem::is_directory(entry))
+        if(std::filesystem::is_directory(entry) && !std::filesystem::is_symlink(entry))
         {
             printTree(entry.path(), prefix + "│   ");
         }
@@ -817,7 +976,7 @@ void search(
     if(args.empty())
     {
         std::cout
-            << "Usage: watch <query>\n";
+            << "Usage: search <query>\n";
 
         return;
     }
@@ -865,8 +1024,17 @@ void search(
     std::cout
         << "\nSelect result: ";
 
-    std::cin
-        >> choice;
+    if(!(std::cin >> choice))
+    {
+        std::cin.clear();
+
+        std::cin.ignore(
+            std::numeric_limits<std::streamsize>::max(),
+            '\n');
+
+        std::cout << "Invalid input\n";
+        return;
+    }
 
     if(choice < 1 ||
        choice >
